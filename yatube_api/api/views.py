@@ -1,10 +1,11 @@
 # TODO:  Напишите свой вариант
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, mixins
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.viewsets import GenericViewSet
 
-from posts.models import Post, Group, Comment
+from posts.models import Post, Group
 from .serializers import (
     PostSerializer, GroupSerializer, CommentSerializer, FollowSerializer)
 from rest_framework.permissions import (
@@ -31,7 +32,6 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly)
 
@@ -43,7 +43,8 @@ class CommentViewSet(viewsets.ModelViewSet):
         return post.comments
 
 
-class FollowViewSet(viewsets.ModelViewSet):
+class FollowViewSet(mixins.CreateModelMixin,
+                    mixins.ListModelMixin, GenericViewSet):
     serializer_class = FollowSerializer
     permission_classes = (IsAuthenticated, )
     filter_backends = (filters.SearchFilter,)
